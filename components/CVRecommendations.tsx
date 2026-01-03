@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FileText, CheckCircle2, ArrowDown, Tag, ChevronLeft, ChevronRight, Copy, Check } from 'lucide-react'
+import { FileText, CheckCircle2, ArrowDown, Tag, ChevronLeft, ChevronRight, Copy, Check, Info } from 'lucide-react'
 
 interface Recommendation {
   section: string
@@ -58,8 +58,22 @@ export default function CVRecommendations({ recommendations }: CVRecommendations
       <div className="flex items-center gap-3 mb-6">
         <FileText className="w-6 h-6 text-primary" />
         <h2 className="text-xl md:text-2xl font-semibold text-card-foreground">
-          CV Optimization Recommendations
+          CV Suggestions
         </h2>
+        <div className="relative group">
+          <Info className="w-4 h-4 text-primary cursor-help" />
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50 pointer-events-none">
+            <div className="bg-card border border-border rounded-lg p-3 shadow-lg w-64 text-sm text-card-foreground relative">
+              <p className="text-xs leading-relaxed">
+                AI analyzes your CV and job description to provide specific recommendations on where to add keywords and what text to modify. Review each suggestion and manually update your CV to maintain its original formatting.
+              </p>
+              <div className="absolute left-1/2 -translate-x-1/2 top-full -mt-px">
+                <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-border"></div>
+                <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[5px] border-transparent border-t-card absolute left-1/2 -translate-x-1/2 -mt-[5px]"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Carousel Container */}
