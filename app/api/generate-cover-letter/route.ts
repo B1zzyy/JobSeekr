@@ -194,7 +194,7 @@ ${jobDescription}
 
     const pdfBytes = await pdfDoc.save()
 
-    return new NextResponse(pdfBytes, {
+    return new NextResponse(Buffer.from(pdfBytes), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': 'attachment; filename="cover-letter.pdf"',
