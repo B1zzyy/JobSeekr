@@ -208,7 +208,7 @@ export default function Home() {
         <UserProfile />
       </div>
 
-      <div className="container mx-auto px-4 py-8 md:py-12 lg:py-16 max-w-4xl">
+      <div className="container mx-auto px-4 pt-20 md:pt-24 pb-8 md:pb-12 lg:pb-16 max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8 md:mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">
