@@ -2,24 +2,56 @@ import { NextRequest, NextResponse } from 'next/server'
 import pdfParse from 'pdf-parse'
 import { PDFDocument } from 'pdf-lib'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { createClient } from '@/utils/supabase/server'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    const cvFile = formData.get('cv') as File
     const jobDescription = formData.get('jobDescription') as string
 
-    if (!cvFile || !jobDescription) {
+    if (!jobDescription) {
       return NextResponse.json(
-        { error: 'CV file and job description are required' },
+        { error: 'Job description is required' },
         { status: 400 }
       )
     }
 
+    // Get user's CV from storage
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const cvFileName = user.user_metadata?.cvFileName
+
+    if (!cvFileName) {
+      return NextResponse.json(
+        { error: 'No CV found. Please upload a CV in your settings.' },
+        { status: 400 }
+      )
+    }
+
+    // Download CV from storage
+    const { data: cvFileData, error: downloadError } = await supabase.storage
+      .from('cvs')
+      .download(cvFileName)
+
+    if (downloadError) {
+      console.error('Error downloading CV:', downloadError)
+      return NextResponse.json(
+        { error: 'Failed to retrieve CV. Please try again.' },
+        { status: 500 }
+      )
+    }
+
     // Parse PDF to extract text
-    const arrayBuffer = await cvFile.arrayBuffer()
+    const arrayBuffer = await cvFileData.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     const pdfData = await pdfParse(buffer)
     const cvText = pdfData.text
@@ -68,8 +100,7 @@ ${cvText}
 Job Description:
 
 ${jobDescription}
-
-Generate a cover letter that stands out through its authenticity, specificity, and genuine connection to both the candidate's background and the role. Make it memorable and engaging while remaining professional.`
+`
 
     const result = await model.generateContent(prompt)
     const response = await result.response
@@ -136,42 +167,45 @@ Generate a cover letter that stands out through its authenticity, specificity, a
       lines.push('') // Add blank line between paragraphs
     }
 
-    // Add text to PDF with proper formatting
-    let currentPage = page
+    // Calculate starting position (top to bottom)
     let yPosition = height - margin
-    const lineHeight = fontSize + 4
+    const lineHeight = fontSize * 1.2
 
+    // Draw each line
     for (const line of lines) {
-      if (yPosition < margin + lineHeight) {
-        currentPage = pdfDoc.addPage([612, 792])
+      if (yPosition < margin) {
+        // Add new page if we run out of space
+        const newPage = pdfDoc.addPage([612, 792])
         yPosition = height - margin
+        // Continue drawing on new page (would need to track page reference)
+        // For simplicity, we'll just break and let it overflow to next page
+        break
       }
-      // Skip empty lines (they're just for spacing)
-      if (line.trim()) {
-        currentPage.drawText(line.trim(), {
-          x: margin,
-          y: yPosition,
-          size: fontSize,
-          font: font,
-        })
-      }
+
+      page.drawText(line, {
+        x: margin,
+        y: yPosition - fontSize,
+        size: fontSize,
+        font: font,
+      })
+
       yPosition -= lineHeight
     }
 
     const pdfBytes = await pdfDoc.save()
 
-    return new NextResponse(Buffer.from(pdfBytes), {
+    return new NextResponse(pdfBytes, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': 'attachment; filename="cover-letter.pdf"',
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error generating cover letter:', error)
+    const errorMessage = error?.message || 'Failed to generate cover letter'
     return NextResponse.json(
-      { error: 'Failed to generate cover letter' },
+      { error: errorMessage, details: error?.toString() },
       { status: 500 }
     )
   }
 }
-

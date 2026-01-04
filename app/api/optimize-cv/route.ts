@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import pdfParse from 'pdf-parse'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { createClient } from '@/utils/supabase/server'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
@@ -14,18 +15,49 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData()
-    const cvFile = formData.get('cv') as File
     const jobDescription = formData.get('jobDescription') as string
 
-    if (!cvFile || !jobDescription) {
+    if (!jobDescription) {
       return NextResponse.json(
-        { error: 'CV file and job description are required' },
+        { error: 'Job description is required' },
         { status: 400 }
       )
     }
 
+    // Get user's CV from storage
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const cvFileName = user.user_metadata?.cvFileName
+
+    if (!cvFileName) {
+      return NextResponse.json(
+        { error: 'No CV found. Please upload a CV in your settings.' },
+        { status: 400 }
+      )
+    }
+
+    // Download CV from storage
+    const { data: cvFileData, error: downloadError } = await supabase.storage
+      .from('cvs')
+      .download(cvFileName)
+
+    if (downloadError) {
+      console.error('Error downloading CV:', downloadError)
+      return NextResponse.json(
+        { error: 'Failed to retrieve CV. Please try again.' },
+        { status: 500 }
+      )
+    }
+
     // Parse PDF to extract text
-    const arrayBuffer = await cvFile.arrayBuffer()
+    const arrayBuffer = await cvFileData.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     const pdfData = await pdfParse(buffer)
     const cvText = pdfData.text
@@ -69,8 +101,7 @@ ${cvText}
 
 Job Description:
 ${jobDescription}
-
-Now return the JSON array of recommendations:`
+`
 
     const result = await model.generateContent(prompt)
     const response = await result.response

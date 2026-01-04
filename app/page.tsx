@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Upload, FileText, Download, Loader2, Sparkles } from 'lucide-react'
+import { FileText, Download, Loader2, Sparkles } from 'lucide-react'
 import UserProfile from '@/components/UserProfile'
-import CVUpload from '@/components/CVUpload'
 import JobDescriptionInput from '@/components/JobDescriptionInput'
 import StatusMessage from '@/components/StatusMessage'
 import ThemeToggle from '@/components/ThemeToggle'
@@ -20,8 +19,9 @@ interface Recommendation {
 }
 
 export default function Home() {
-  const [cvFile, setCvFile] = useState<File | null>(null)
   const [jobDescription, setJobDescription] = useState('')
+  const [hasCV, setHasCV] = useState(false)
+  const [isCheckingCV, setIsCheckingCV] = useState(true)
   const [isOptimizing, setIsOptimizing] = useState(false)
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false)
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null)
@@ -51,6 +51,27 @@ export default function Home() {
     checkOnboardingStatus()
   }, [])
 
+  // Check if user has CV stored
+  useEffect(() => {
+    const checkCVStatus = async () => {
+      try {
+        const response = await fetch('/api/user/cv/get')
+        if (response.ok) {
+          const data = await response.json()
+          setHasCV(!!data.cvFile)
+        }
+      } catch (error) {
+        console.error('Error checking CV status:', error)
+      } finally {
+        setIsCheckingCV(false)
+      }
+    }
+
+    if (!showOnboarding) {
+      checkCVStatus()
+    }
+  }, [showOnboarding])
+
   // Smooth scroll to recommendations when they're generated
   useEffect(() => {
     if (recommendations && recommendations.length > 0 && recommendationsRef.current) {
@@ -62,17 +83,6 @@ export default function Home() {
       }, 100) // Small delay to ensure DOM has updated
     }
   }, [recommendations])
-
-  const handleCVUpload = (file: File) => {
-    setCvFile(file)
-  }
-
-  const handleCVRemove = () => {
-    setCvFile(null)
-    setRecommendations(null)
-    setCoverLetter(null)
-    setStatus(null)
-  }
 
   // Smooth scroll to cover letter when it's generated
   useEffect(() => {
@@ -87,8 +97,8 @@ export default function Home() {
   }, [coverLetter])
 
   const handleOptimizeCV = async () => {
-    if (!cvFile || !jobDescription.trim()) {
-      setStatus({ type: 'error', message: 'Please upload a CV and enter a job description' })
+    if (!hasCV || !jobDescription.trim()) {
+      setStatus({ type: 'error', message: 'Please ensure you have a CV uploaded and enter a job description' })
       return
     }
 
@@ -97,7 +107,6 @@ export default function Home() {
 
     try {
       const formData = new FormData()
-      formData.append('cv', cvFile)
       formData.append('jobDescription', jobDescription)
 
       const response = await fetch('/api/optimize-cv', {
@@ -117,8 +126,8 @@ export default function Home() {
       } else {
         throw new Error('Invalid response from server')
       }
-    } catch (error) {
-      setStatus({ type: 'error', message: 'Failed to optimize CV. Please try again.' })
+    } catch (error: any) {
+      setStatus({ type: 'error', message: error.message || 'Failed to optimize CV. Please try again.' })
       console.error('Error optimizing CV:', error)
     } finally {
       setIsOptimizing(false)
@@ -126,8 +135,8 @@ export default function Home() {
   }
 
   const handleGenerateCoverLetter = async () => {
-    if (!cvFile || !jobDescription.trim()) {
-      setStatus({ type: 'error', message: 'Please upload a CV and enter a job description' })
+    if (!hasCV || !jobDescription.trim()) {
+      setStatus({ type: 'error', message: 'Please ensure you have a CV uploaded and enter a job description' })
       return
     }
 
@@ -136,7 +145,6 @@ export default function Home() {
 
     try {
       const formData = new FormData()
-      formData.append('cv', cvFile)
       formData.append('jobDescription', jobDescription)
 
       const response = await fetch('/api/generate-cover-letter', {
@@ -153,8 +161,8 @@ export default function Home() {
       const url = URL.createObjectURL(blob)
       setCoverLetter(url)
       setStatus(null)
-    } catch (error) {
-      setStatus({ type: 'error', message: 'Failed to generate cover letter. Please try again.' })
+    } catch (error: any) {
+      setStatus({ type: 'error', message: error.message || 'Failed to generate cover letter. Please try again.' })
       console.error('Error generating cover letter:', error)
     } finally {
       setIsGeneratingCoverLetter(false)
@@ -172,23 +180,23 @@ export default function Home() {
 
   // Don't render content while checking onboarding status
   if (isCheckingOnboarding) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
+    return null
   }
 
-  // Show onboarding walkthrough if user hasn't completed it
+  // Show onboarding walkthrough
   if (showOnboarding) {
     return (
       <OnboardingWalkthrough
         onComplete={() => setShowOnboarding(false)}
-        onCVUpload={handleCVUpload}
-        cvFile={cvFile}
+        onCVUpload={async () => {
+          // CV upload is handled in onboarding
+          const response = await fetch('/api/user/cv/get')
+          if (response.ok) {
+            const data = await response.json()
+            setHasCV(!!data.cvFile)
+          }
+        }}
+        cvFile={null}
       />
     )
   }
@@ -200,7 +208,7 @@ export default function Home() {
         <UserProfile />
       </div>
 
-      <div className="container mx-auto px-4 py-8 md:py-12 lg:py-16 max-w-6xl">
+      <div className="container mx-auto px-4 py-8 md:py-12 lg:py-16 max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8 md:mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -214,41 +222,27 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-8">
-          {/* CV Upload Section */}
-          <div className="bg-card rounded-lg p-6 md:p-8 shadow-lg border border-border">
-            <div className="flex items-center gap-3 mb-4">
-              <Upload className="w-5 h-5 text-primary" />
-              <h2 className="text-xl md:text-2xl font-semibold text-card-foreground">
-                Upload Your CV
-              </h2>
-            </div>
-            <CVUpload onFileUpload={handleCVUpload} file={cvFile} onFileRemove={handleCVRemove} />
+        {/* Main Content - Job Description */}
+        <div className="bg-card rounded-lg p-6 md:p-8 shadow-lg border border-border mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <FileText className="w-5 h-5 text-primary" />
+            <h2 className="text-xl md:text-2xl font-semibold text-card-foreground">
+              Job Description
+            </h2>
           </div>
-
-          {/* Job Description Section */}
-          <div className="bg-card rounded-lg p-6 md:p-8 shadow-lg border border-border">
-            <div className="flex items-center gap-3 mb-4">
-              <FileText className="w-5 h-5 text-primary" />
-              <h2 className="text-xl md:text-2xl font-semibold text-card-foreground">
-                Job Description
-              </h2>
-            </div>
-            <JobDescriptionInput
-              value={jobDescription}
-              onChange={setJobDescription}
-              hasCV={!!cvFile}
-            />
-          </div>
+          <JobDescriptionInput
+            value={jobDescription}
+            onChange={setJobDescription}
+            hasCV={hasCV}
+          />
         </div>
 
-        {/* Action Buttons - Initially both buttons, but only Optimize CV if not optimized */}
+        {/* Action Buttons */}
         {!recommendations && !coverLetter && (
           <div className="flex flex-col sm:flex-row gap-4 justify-end mb-6">
             <button
               onClick={handleOptimizeCV}
-              disabled={!cvFile || !jobDescription.trim() || isOptimizing || isGeneratingCoverLetter}
+              disabled={!hasCV || !jobDescription.trim() || isOptimizing || isGeneratingCoverLetter}
               className="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity font-semibold text-sm md:text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isOptimizing ? (
@@ -265,7 +259,7 @@ export default function Home() {
             </button>
             <button
               onClick={handleGenerateCoverLetter}
-              disabled={!cvFile || !jobDescription.trim() || isOptimizing || isGeneratingCoverLetter}
+              disabled={!hasCV || !jobDescription.trim() || isOptimizing || isGeneratingCoverLetter}
               className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent text-accent-foreground rounded-md hover:opacity-90 transition-opacity font-semibold text-sm md:text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isGeneratingCoverLetter ? (
@@ -292,16 +286,13 @@ export default function Home() {
 
         {/* CV Recommendations */}
         {recommendations && (
-          <>
-            <div ref={recommendationsRef} className="mb-6">
-              <CVRecommendations recommendations={recommendations} />
-            </div>
-            {/* Generate Cover Letter Button - Outside Recommendations Container */}
+          <div ref={recommendationsRef} className="mb-8">
+            <CVRecommendations recommendations={recommendations} />
             {!coverLetter && (
-              <div className="flex justify-end mb-8">
+              <div className="mt-6 flex justify-end">
                 <button
                   onClick={handleGenerateCoverLetter}
-                  disabled={!cvFile || !jobDescription.trim() || isOptimizing || isGeneratingCoverLetter}
+                  disabled={!hasCV || !jobDescription.trim() || isOptimizing || isGeneratingCoverLetter}
                   className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent text-accent-foreground rounded-md hover:opacity-90 transition-opacity font-semibold text-sm md:text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isGeneratingCoverLetter ? (
@@ -318,61 +309,37 @@ export default function Home() {
                 </button>
               </div>
             )}
-          </>
+          </div>
         )}
 
-        {/* Download Section */}
+        {/* Cover Letter */}
         {coverLetter && (
-          <>
-            <div ref={coverLetterRef} className="bg-card rounded-lg p-4 md:p-5 shadow-lg border border-border mb-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <FileText className="w-5 h-5 text-primary flex-shrink-0" />
-                  <div>
-                    <h2 className="text-lg md:text-xl font-semibold text-card-foreground">
-                      Cover Letter Ready
-                    </h2>
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                      Your personalized cover letter is ready to download
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleDownload(coverLetter, 'cover-letter.pdf')}
-                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent text-accent-foreground rounded-md hover:opacity-90 transition-opacity font-semibold text-sm md:text-base shadow-lg flex-shrink-0"
-                >
-                  <Download className="w-4 h-4" />
-                  Download
-                </button>
+          <div ref={coverLetterRef} className="bg-card rounded-lg p-6 md:p-8 shadow-lg border border-border">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <FileText className="w-5 h-5 text-primary" />
+                <h2 className="text-xl md:text-2xl font-semibold text-card-foreground">
+                  Cover Letter
+                </h2>
               </div>
+              <button
+                onClick={() => handleDownload(coverLetter, 'cover-letter.pdf')}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity font-medium text-sm"
+              >
+                <Download className="w-4 h-4" />
+                Download
+              </button>
             </div>
-            {/* Optimize CV Button - After Cover Letter if no recommendations */}
-            {!recommendations && (
-              <div className="flex justify-end mb-8">
-                <button
-                  onClick={handleOptimizeCV}
-                  disabled={!cvFile || !jobDescription.trim() || isOptimizing || isGeneratingCoverLetter}
-                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity font-semibold text-sm md:text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isOptimizing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Optimizing...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      Optimize CV
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
-          </>
+            <div className="w-full h-[600px] border border-border rounded-lg overflow-hidden">
+              <iframe
+                src={coverLetter}
+                className="w-full h-full"
+                title="Cover Letter Preview"
+              />
+            </div>
+          </div>
         )}
       </div>
-      <ThemeToggle />
     </div>
   )
 }
-
