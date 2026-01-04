@@ -33,6 +33,8 @@ npm install
 3. Create a `.env.local` file in the root directory:
 ```bash
 GEMINI_API_KEY=your_gemini_api_key_here
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
    **To get your free Gemini API key:**
@@ -40,6 +42,13 @@ GEMINI_API_KEY=your_gemini_api_key_here
    2. Sign in with your Google account
    3. Click "Create API Key"
    4. Copy the API key and paste it in your `.env.local` file
+
+   **To get your Supabase credentials:**
+   1. Go to [Supabase](https://supabase.com) and sign in or create an account
+   2. Create a new project (or use an existing one)
+   3. Go to Project Settings > API
+   4. Copy the "Project URL" and paste it as `NEXT_PUBLIC_SUPABASE_URL`
+   5. Copy the "anon public" key and paste it as `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 4. Run the development server:
 ```bash
@@ -61,6 +70,7 @@ npm run dev
 - **Next.js 14** - React framework with App Router
 - **TypeScript** - Type-safe development
 - **Tailwind CSS** - Utility-first CSS framework
+- **Supabase** - Authentication and database
 - **Google Gemini API** - AI-powered CV optimization and cover letter generation (free!)
 - **pdf-parse** - PDF text extraction
 - **pdf-lib** - PDF generation
@@ -93,9 +103,12 @@ Create a `.env.local` file with:
 
 ```
 GEMINI_API_KEY=your_gemini_api_key_here
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-Get your free API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+- Get your free Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+- Get your Supabase credentials from your [Supabase project settings](https://supabase.com/dashboard/project/_/settings/api)
 
 ## Building for Production
 
