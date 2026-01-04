@@ -30,6 +30,7 @@ export default function Home() {
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true)
   const [isSavingApplication, setIsSavingApplication] = useState(false)
   const [applicationSaved, setApplicationSaved] = useState(false)
+  const [cvFile, setCvFile] = useState<File | null>(null)
   const recommendationsRef = useRef<HTMLDivElement>(null)
   const coverLetterRef = useRef<HTMLDivElement>(null)
 
@@ -220,15 +221,10 @@ export default function Home() {
         <div className="fixed inset-0 z-50 bg-background">
           <OnboardingWalkthrough
             onComplete={() => setShowOnboarding(false)}
-            onCVUpload={async () => {
-              // CV upload is handled in onboarding
-              const response = await fetch('/api/user/cv/get')
-              if (response.ok) {
-                const data = await response.json()
-                setHasCV(!!data.cvFile)
-              }
+            onCVUpload={(file: File) => {
+              setCvFile(file)
             }}
-            cvFile={null}
+            cvFile={cvFile}
           />
         </div>
       )}
