@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { FileText, Download, Loader2, Sparkles } from 'lucide-react'
+import { FileText, Download, Loader2, Sparkles, CheckCircle2 } from 'lucide-react'
 import AppLayout from '@/components/AppLayout'
 import JobDescriptionInput from '@/components/JobDescriptionInput'
 import StatusMessage from '@/components/StatusMessage'
@@ -28,6 +28,8 @@ export default function Home() {
   const [coverLetter, setCoverLetter] = useState<string | null>(null)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true)
+  const [isSavingApplication, setIsSavingApplication] = useState(false)
+  const [applicationSaved, setApplicationSaved] = useState(false)
   const recommendationsRef = useRef<HTMLDivElement>(null)
   const coverLetterRef = useRef<HTMLDivElement>(null)
 
@@ -177,6 +179,41 @@ export default function Home() {
     document.body.removeChild(link)
   }
 
+  const handleSaveApplication = async () => {
+    if (!jobDescription.trim()) {
+      setStatus({ type: 'error', message: 'Please enter a job description first' })
+      return
+    }
+
+    setIsSavingApplication(true)
+    setStatus(null)
+
+    try {
+      const response = await fetch('/api/applications/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jobDescription: jobDescription.trim(),
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to save application' }))
+        throw new Error(errorData.error || 'Failed to save application')
+      }
+
+      setApplicationSaved(true)
+      setStatus({ type: 'success', message: 'Application saved successfully!' })
+    } catch (error: any) {
+      setStatus({ type: 'error', message: error.message || 'Failed to save application. Please try again.' })
+      console.error('Error saving application:', error)
+    } finally {
+      setIsSavingApplication(false)
+    }
+  }
+
   return (
     <>
       {/* Show onboarding walkthrough as full-screen overlay */}
@@ -281,7 +318,7 @@ export default function Home() {
           <div ref={recommendationsRef} className="mb-8">
             <CVRecommendations recommendations={recommendations} />
             {!coverLetter && (
-              <div className="mt-6 flex justify-end">
+              <div className="mt-6 flex justify-end gap-4">
                 <button
                   onClick={handleGenerateCoverLetter}
                   disabled={!hasCV || !jobDescription.trim() || isOptimizing || isGeneratingCoverLetter}
@@ -296,6 +333,28 @@ export default function Home() {
                     <>
                       <FileText className="w-4 h-4" />
                       Generate Cover Letter
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={handleSaveApplication}
+                  disabled={!jobDescription.trim() || isSavingApplication || applicationSaved}
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-secondary text-secondary-foreground rounded-md hover:opacity-90 transition-opacity font-semibold text-sm md:text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSavingApplication ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : applicationSaved ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      Applied
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      I Applied
                     </>
                   )}
                 </button>
@@ -329,6 +388,61 @@ export default function Home() {
                 title="Cover Letter Preview"
               />
             </div>
+            {/* I Applied button inside container when only cover letter is used (no recommendations) */}
+            {!recommendations && (
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={handleSaveApplication}
+                  disabled={!jobDescription.trim() || isSavingApplication || applicationSaved}
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-secondary text-secondary-foreground rounded-md hover:opacity-90 transition-opacity font-semibold text-sm md:text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSavingApplication ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : applicationSaved ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      Applied
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      I Applied
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* I Applied button outside container when both options are used */}
+        {recommendations && coverLetter && (
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={handleSaveApplication}
+              disabled={!jobDescription.trim() || isSavingApplication || applicationSaved}
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-secondary text-secondary-foreground rounded-md hover:opacity-90 transition-opacity font-semibold text-sm md:text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSavingApplication ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : applicationSaved ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  Applied
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  I Applied
+                </>
+              )}
+            </button>
           </div>
         )}
           </>
