@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Settings, LogOut, ChevronDown, User as UserIcon } from 'lucide-react'
+import { Settings, LogOut, ChevronDown, User as UserIcon, Sun, Moon } from 'lucide-react'
 import Link from 'next/link'
 import { signOut as signOutAction } from '@/app/auth/actions'
 
@@ -14,10 +14,30 @@ export default function UserProfile() {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [mounted, setMounted] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const applyTheme = (newTheme: 'light' | 'dark') => {
+    const root = document.documentElement
+    if (newTheme === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+    localStorage.setItem('theme', newTheme)
+  }
 
   useEffect(() => {
     fetchUserInfo()
+    setMounted(true)
+    // Check for saved theme or default to light
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    
+    const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light')
+    setTheme(initialTheme)
+    applyTheme(initialTheme)
   }, [])
 
   // Close dropdown when clicking outside
@@ -56,6 +76,12 @@ export default function UserProfile() {
 
   const handleSignOut = async () => {
     await signOutAction()
+  }
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light'
+    setTheme(newTheme)
+    applyTheme(newTheme)
   }
 
   if (loading) {
@@ -101,6 +127,27 @@ export default function UserProfile() {
               <Settings className="w-4 h-4 flex-shrink-0" />
               Settings
             </Link>
+            {mounted && (
+              <div className="w-full flex items-center justify-between px-4 py-3 md:py-2.5 text-sm text-foreground">
+                <span className="flex items-center gap-3">
+                  <Moon className="w-4 h-4 flex-shrink-0" />
+                  Dark Mode
+                </span>
+                <button
+                  onClick={toggleTheme}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
+                    theme === 'dark' ? 'bg-primary' : 'bg-muted'
+                  }`}
+                  aria-label="Toggle theme"
+                >
+                  <span
+                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                      theme === 'dark' ? 'translate-x-5' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
+            )}
             <button
               onClick={handleSignOut}
               className="w-full flex items-center gap-3 px-4 py-3 md:py-2.5 text-sm text-foreground hover:bg-muted transition-colors touch-manipulation"

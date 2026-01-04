@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { FileText, Download, Loader2, Sparkles } from 'lucide-react'
-import UserProfile from '@/components/UserProfile'
+import AppLayout from '@/components/AppLayout'
 import JobDescriptionInput from '@/components/JobDescriptionInput'
 import StatusMessage from '@/components/StatusMessage'
-import ThemeToggle from '@/components/ThemeToggle'
 import CVRecommendations from '@/components/CVRecommendations'
 import OnboardingWalkthrough from '@/components/OnboardingWalkthrough'
 
@@ -178,57 +177,42 @@ export default function Home() {
     document.body.removeChild(link)
   }
 
-  // Don't render content while checking onboarding status
-  if (isCheckingOnboarding) {
-    return null
-  }
-
-  // Show onboarding walkthrough
-  if (showOnboarding) {
-    return (
-      <OnboardingWalkthrough
-        onComplete={() => setShowOnboarding(false)}
-        onCVUpload={async () => {
-          // CV upload is handled in onboarding
-          const response = await fetch('/api/user/cv/get')
-          if (response.ok) {
-            const data = await response.json()
-            setHasCV(!!data.cvFile)
-          }
-        }}
-        cvFile={null}
-      />
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Mobile: Logo and Title - Top Left */}
-      <div className="absolute top-4 left-4 md:hidden z-10 flex items-center gap-2 h-12">
-        <Sparkles className="w-5 h-5 text-primary flex-shrink-0" />
-        <h1 className="text-lg font-bold text-foreground leading-none">
-          JobSeekr
-        </h1>
-      </div>
-
-      {/* User Profile - Top Right */}
-      <div className="absolute top-4 right-4 md:top-8 md:right-8 z-10 flex items-center h-12">
-        <UserProfile />
-      </div>
-
-      <div className="container mx-auto px-4 pt-28 md:pt-24 pb-8 md:pb-12 lg:pb-16 max-w-4xl">
-        {/* Header - Desktop Only */}
-        <div className="hidden md:block text-center mb-8 md:mb-12">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Sparkles className="w-8 h-8 md:w-10 md:h-10 text-primary" />
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
-              JobSeekr
-            </h1>
-          </div>
-          <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
-            Optimize your CV with AI and generate personalized cover letters in seconds
-          </p>
+    <>
+      {/* Show onboarding walkthrough as full-screen overlay */}
+      {!isCheckingOnboarding && showOnboarding && (
+        <div className="fixed inset-0 z-50 bg-background">
+          <OnboardingWalkthrough
+            onComplete={() => setShowOnboarding(false)}
+            onCVUpload={async () => {
+              // CV upload is handled in onboarding
+              const response = await fetch('/api/user/cv/get')
+              if (response.ok) {
+                const data = await response.json()
+                setHasCV(!!data.cvFile)
+              }
+            }}
+            cvFile={null}
+          />
         </div>
+      )}
+      
+      <AppLayout>
+        {/* Don't render main content while checking onboarding status or showing onboarding */}
+        {!isCheckingOnboarding && !showOnboarding && (
+          <>
+            {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <Sparkles className="w-8 h-8 text-primary" />
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+            JobSeekr
+          </h1>
+        </div>
+        <p className="text-muted-foreground text-base md:text-lg">
+          Optimize your CV with AI and generate personalized cover letters in seconds
+        </p>
+      </div>
 
         {/* Main Content - Job Description */}
         <div className="bg-card rounded-lg p-6 md:p-8 shadow-lg border border-border mb-8">
@@ -347,7 +331,9 @@ export default function Home() {
             </div>
           </div>
         )}
-      </div>
-    </div>
+          </>
+        )}
+      </AppLayout>
+    </>
   )
 }

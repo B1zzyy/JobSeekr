@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Upload, FileText, Loader2, Settings, ArrowLeft } from 'lucide-react'
+import { Upload, FileText, Loader2 } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
-import Link from 'next/link'
+import AppLayout from '@/components/AppLayout'
 
 interface CVFile {
   fileName: string
@@ -95,31 +95,22 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
     )
   }
 
   const displayFileName = cvFile ? getOriginalFileName(cvFile.fileName) : null
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 md:py-12 lg:py-16 max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
-          <div className="flex items-center gap-3">
-            <Settings className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground">Settings</h1>
-          </div>
-        </div>
+    <AppLayout>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-foreground mb-2">Settings</h1>
+        <p className="text-muted-foreground">Manage your CV and account settings</p>
+      </div>
 
         {/* Your CV Section */}
         <div className="bg-card rounded-lg p-6 md:p-8 shadow-lg border border-border mb-8">
@@ -203,7 +194,6 @@ export default function SettingsPage() {
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </AppLayout>
   )
 }
