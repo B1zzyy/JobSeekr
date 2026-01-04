@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
@@ -30,6 +30,7 @@ export default function Sidebar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [mounted, setMounted] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetchUserInfo()
@@ -39,6 +40,23 @@ export default function Sidebar() {
     const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light')
     setTheme(initialTheme)
   }, [])
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+
+    if (userMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [userMenuOpen])
 
   const fetchUserInfo = async () => {
     try {
@@ -71,7 +89,6 @@ export default function Sidebar() {
     const newTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(newTheme)
     applyTheme(newTheme)
-    setUserMenuOpen(false)
   }
 
   const handleSignOut = async () => {
@@ -168,7 +185,7 @@ export default function Sidebar() {
               <div className="flex-1 h-4 bg-muted rounded animate-pulse" />
             </div>
           ) : userInfo ? (
-            <div className="relative">
+            <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
