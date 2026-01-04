@@ -27,16 +27,25 @@ export async function POST(request: NextRequest) {
     // Use AI to extract company name and job position from job description
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' })
     
-    const prompt = `Extract the company name and job title/position from the following job description. Return ONLY a valid JSON object with these two fields: "companyName" and "jobTitle". If you cannot find a company name, use "Unknown Company". If you cannot find a job title, use "Unknown Position".
+    const prompt = `Extract the company name and job title/position from the following job description.
 
-Job Description:
-${jobDescription}
+IMPORTANT RULES:
+1. COMPANY NAME: Only extract if explicitly mentioned. Look for patterns like "at [Company]", "Company:", "Join [Company]", "[Company] is looking for", etc. If not clearly stated, use "Unknown Company". DO NOT guess or infer the company name.
 
-Return ONLY the JSON object, no markdown, no code blocks, no explanations. Just the raw JSON:
+2. JOB TITLE/POSITION: Be more flexible here. Look for:
+   - Explicit job titles (e.g., "Software Engineer", "Frontend Developer", "React Developer")
+   - If no explicit title but technologies/stack are heavily mentioned (e.g., React, Python, etc.), infer a reasonable title (e.g., "React Developer", "Python Developer", "Full Stack Developer")
+   - If the role heavily focuses on a specific technology or domain, create an appropriate title based on that (e.g., if it's all about React/JavaScript frontend work, use "Frontend Developer" or "React Developer")
+   - Only use "Unknown Position" if the job description is too vague or generic to infer any meaningful title
+
+Return ONLY a valid JSON object with these two fields: "companyName" and "jobTitle". No markdown, no code blocks, no explanations. Just the raw JSON:
 {
   "companyName": "...",
   "jobTitle": "..."
-}`
+}
+
+Job Description:
+${jobDescription}`
 
     const result = await model.generateContent(prompt)
     const response = await result.response

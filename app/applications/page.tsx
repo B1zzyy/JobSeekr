@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import AppLayout from '@/components/AppLayout'
-import { FileText, Calendar, Building2, Briefcase, ChevronDown } from 'lucide-react'
+import { FileText, Calendar, Building2, Briefcase, ChevronDown, Search, Filter } from 'lucide-react'
 
 interface Application {
   id: string
@@ -28,7 +28,12 @@ export default function ApplicationsPage() {
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
   const [editingField, setEditingField] = useState<{ id: string; field: 'company' | 'title' } | null>(null)
   const [editValue, setEditValue] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false)
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(STATUS_OPTIONS)
+  const [dateSort, setDateSort] = useState<'newest' | 'oldest'>('newest')
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+  const filterDropdownRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -191,6 +196,49 @@ export default function ApplicationsPage() {
     }
   }
 
+  // Filter and sort applications
+  const filteredApplications = applications
+    .filter((application) => {
+      // Search filter
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim()
+        const companyName = (application.company_name || '').toLowerCase()
+        const jobTitle = (application.job_title || '').toLowerCase()
+        if (!companyName.includes(query) && !jobTitle.includes(query)) {
+          return false
+        }
+      }
+      
+      // Status filter
+      if (!selectedStatuses.includes(application.status)) {
+        return false
+      }
+      
+      return true
+    })
+    .sort((a, b) => {
+      // Date sort
+      const dateA = new Date(a.applied_at).getTime()
+      const dateB = new Date(b.applied_at).getTime()
+      return dateSort === 'newest' ? dateB - dateA : dateA - dateB
+    })
+
+  const handleStatusToggle = (status: string) => {
+    setSelectedStatuses(prev =>
+      prev.includes(status)
+        ? prev.filter(s => s !== status)
+        : [...prev, status]
+    )
+  }
+
+  const handleSelectAllStatuses = () => {
+    setSelectedStatuses(STATUS_OPTIONS)
+  }
+
+  const handleClearAllStatuses = () => {
+    setSelectedStatuses([])
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Accepted':
@@ -219,6 +267,118 @@ export default function ApplicationsPage() {
         <p className="text-muted-foreground">Track your job applications</p>
       </div>
 
+      {/* Search and Filter Bar */}
+      <div className="mb-6 flex items-center gap-4">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search applications..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+        <div className="relative" ref={el => { filterDropdownRef.current = el }}>
+          <button
+            onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+            className="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-lg text-sm hover:bg-muted transition-colors"
+          >
+            <Filter className="w-4 h-4 text-muted-foreground" />
+            <span className="text-foreground">Filter</span>
+          </button>
+          {showFilterDropdown && (
+            <div className="absolute right-0 mt-2 bg-card border border-border rounded-lg shadow-lg z-20 min-w-[280px] p-4">
+              <div className="space-y-4">
+                {/* Date Sort */}
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">
+                    Sort by Date
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setDateSort('newest')}
+                      className={`flex-1 px-3 py-2 text-sm rounded-md border transition-colors ${
+                        dateSort === 'newest'
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-background border-border hover:bg-muted'
+                      }`}
+                    >
+                      Newest First
+                    </button>
+                    <button
+                      onClick={() => setDateSort('oldest')}
+                      className={`flex-1 px-3 py-2 text-sm rounded-md border transition-colors ${
+                        dateSort === 'oldest'
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-background border-border hover:bg-muted'
+                      }`}
+                    >
+                      Oldest First
+                    </button>
+                  </div>
+                </div>
+
+                {/* Status Filter */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-medium text-foreground">
+                      Status
+                    </label>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleSelectAllStatuses}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        All
+                      </button>
+                      <button
+                        onClick={handleClearAllStatuses}
+                        className="text-xs text-muted-foreground hover:underline"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-1 max-h-[200px] overflow-y-auto scrollbar-minimal">
+                    {STATUS_OPTIONS.map((status) => {
+                      const isChecked = selectedStatuses.includes(status)
+                      return (
+                        <label
+                          key={status}
+                          className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 p-2 rounded transition-colors"
+                        >
+                          <div className="relative flex items-center justify-center">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => handleStatusToggle(status)}
+                              className="sr-only"
+                            />
+                            <div className={`w-4 h-4 rounded border-2 transition-all duration-200 flex items-center justify-center ${
+                              isChecked
+                                ? 'bg-primary border-primary'
+                                : 'bg-background border-border'
+                            }`}>
+                              {isChecked && (
+                                <svg className="w-3 h-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+                          <span className="text-sm text-foreground">{status}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {loading ? (
         <div className="bg-card rounded-lg p-8 border border-border text-center">
           <div className="animate-pulse space-y-4">
@@ -232,9 +392,15 @@ export default function ApplicationsPage() {
           <h2 className="text-xl font-semibold text-foreground mb-2">No applications yet</h2>
           <p className="text-muted-foreground">Applications you save will appear here</p>
         </div>
+      ) : filteredApplications.length === 0 ? (
+        <div className="bg-card rounded-lg p-8 border border-border text-center">
+          <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-foreground mb-2">No results found</h2>
+          <p className="text-muted-foreground">Try adjusting your search query</p>
+        </div>
       ) : (
         <div className="space-y-3">
-          {applications.map((application) => (
+          {filteredApplications.map((application) => (
             <div
               key={application.id}
               className="bg-card rounded-lg p-4 border border-border hover:shadow-md transition-shadow"
@@ -309,7 +475,7 @@ export default function ApplicationsPage() {
                 </div>
 
                 {/* Status dropdown - Fixed width, aligned right */}
-                <div className="relative ml-auto" ref={el => (dropdownRefs.current[application.id] = el)}>
+                <div className="relative ml-auto" ref={el => { dropdownRefs.current[application.id] = el }}>
                   <button
                     onClick={() => setOpenDropdownId(openDropdownId === application.id ? null : application.id)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${getStatusColor(application.status)}`}

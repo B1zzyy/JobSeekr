@@ -205,7 +205,6 @@ export default function Home() {
       }
 
       setApplicationSaved(true)
-      setStatus({ type: 'success', message: 'Application saved successfully!' })
     } catch (error: any) {
       setStatus({ type: 'error', message: error.message || 'Failed to save application. Please try again.' })
       console.error('Error saving application:', error)
@@ -241,7 +240,7 @@ export default function Home() {
             {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <Sparkles className="w-8 h-8 text-primary" />
+          <Sparkles className="w-8 h-8 text-primary md:hidden" />
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
             JobSeekr
           </h1>
@@ -388,33 +387,51 @@ export default function Home() {
                 title="Cover Letter Preview"
               />
             </div>
-            {/* I Applied button inside container when only cover letter is used (no recommendations) */}
-            {!recommendations && (
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={handleSaveApplication}
-                  disabled={!jobDescription.trim() || isSavingApplication || applicationSaved}
-                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-secondary text-secondary-foreground rounded-md hover:opacity-90 transition-opacity font-semibold text-sm md:text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSavingApplication ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : applicationSaved ? (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      Applied
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      I Applied
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
+          </div>
+        )}
+
+        {/* Optimize CV button when cover letter exists but recommendations don't */}
+        {coverLetter && !recommendations && (
+          <div className="mt-6 flex justify-end gap-4">
+            <button
+              onClick={handleOptimizeCV}
+              disabled={!hasCV || !jobDescription.trim() || isOptimizing || isGeneratingCoverLetter}
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity font-semibold text-sm md:text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isOptimizing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Optimizing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  Optimize CV
+                </>
+              )}
+            </button>
+            <button
+              onClick={handleSaveApplication}
+              disabled={!jobDescription.trim() || isSavingApplication || applicationSaved}
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-secondary text-secondary-foreground rounded-md hover:opacity-90 transition-opacity font-semibold text-sm md:text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSavingApplication ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : applicationSaved ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  Applied
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  I Applied
+                </>
+              )}
+            </button>
           </div>
         )}
 
