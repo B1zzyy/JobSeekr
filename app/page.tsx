@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Upload, FileText, Download, Loader2, Sparkles } from 'lucide-react'
+import UserProfile from '@/components/UserProfile'
 import CVUpload from '@/components/CVUpload'
 import JobDescriptionInput from '@/components/JobDescriptionInput'
 import StatusMessage from '@/components/StatusMessage'
 import ThemeToggle from '@/components/ThemeToggle'
 import CVRecommendations from '@/components/CVRecommendations'
+import OnboardingWalkthrough from '@/components/OnboardingWalkthrough'
 
 interface Recommendation {
   section: string
@@ -25,8 +27,29 @@ export default function Home() {
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null)
   const [recommendations, setRecommendations] = useState<Recommendation[] | null>(null)
   const [coverLetter, setCoverLetter] = useState<string | null>(null)
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true)
   const recommendationsRef = useRef<HTMLDivElement>(null)
   const coverLetterRef = useRef<HTMLDivElement>(null)
+
+  // Check onboarding status on mount
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      try {
+        const response = await fetch('/api/onboarding/status')
+        if (response.ok) {
+          const data = await response.json()
+          setShowOnboarding(!data.hasCompletedOnboarding)
+        }
+      } catch (error) {
+        console.error('Error checking onboarding status:', error)
+      } finally {
+        setIsCheckingOnboarding(false)
+      }
+    }
+
+    checkOnboardingStatus()
+  }, [])
 
   // Smooth scroll to recommendations when they're generated
   useEffect(() => {
@@ -147,8 +170,36 @@ export default function Home() {
     document.body.removeChild(link)
   }
 
+  // Don't render content while checking onboarding status
+  if (isCheckingOnboarding) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show onboarding walkthrough if user hasn't completed it
+  if (showOnboarding) {
+    return (
+      <OnboardingWalkthrough
+        onComplete={() => setShowOnboarding(false)}
+        onCVUpload={handleCVUpload}
+        cvFile={cvFile}
+      />
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
+      {/* User Profile - Top Right */}
+      <div className="absolute top-4 right-4 md:top-8 md:right-8 z-10">
+        <UserProfile />
+      </div>
+
       <div className="container mx-auto px-4 py-8 md:py-12 lg:py-16 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-8 md:mb-12">
