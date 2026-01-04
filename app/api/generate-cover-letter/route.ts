@@ -27,7 +27,39 @@ export async function POST(request: NextRequest) {
     // Use Gemini to generate cover letter (using free tier model: gemini-2.0-flash-lite)
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' })
     
-    const prompt = `You are an expert cover letter writer. Write a professional, compelling cover letter that highlights the candidate's relevant experience from their CV and connects it to the job requirements. The cover letter should be well-structured, engaging, and tailored to the specific position.
+    const prompt = `You are an expert cover letter writer who creates engaging, personalized cover letters that stand out from generic templates. Write a compelling cover letter that authentically connects the candidate's experience to the job requirements.
+
+CRITICAL REQUIREMENTS:
+- DO NOT include headers, addresses, dates, phone numbers, or email addresses
+- DO NOT use placeholder text, brackets, or instructions for the user to fill in (e.g., no [Your Name], [Date], [Platform where you saw the advert], etc.)
+- Start directly with a professional greeting (e.g., "Dear Hiring Manager,")
+- Write a complete, ready-to-use cover letter that requires NO manual editing
+- Write naturally without any brackets, placeholders, or incomplete sentences
+
+WRITING STYLE GUIDELINES:
+1. HOOK: Start with an engaging opening that shows genuine interest. Avoid generic phrases like "I am writing to express my interest" or "I am applying for the position of". Instead, open with something specific about the company, the role, or what excites the candidate about the opportunity.
+
+2. TONE & PERSONALITY: Match the energy and tone of the company. For innovative, tech-forward companies (especially conversational AI, startups, or creative fields), use a more conversational, energetic tone while remaining professional. Show personality and enthusiasm authentically.
+
+3. SPECIFICITY: Be specific about:
+   - What about this particular role excites the candidate
+   - How the candidate's specific experiences directly relate to the responsibilities
+   - Specific projects, skills, or achievements from their CV that align with requirements
+   - Understanding of the company's mission, values, or unique aspects mentioned in the job description
+
+4. COMPANY CONTEXT: Reference specific details from the job description when relevant:
+   - Company values or culture mentioned
+   - Specific technologies, tools, or methodologies
+   - Company mission or vision
+   - Unique aspects of the role (e.g., "new graduates welcome", remote work, growth opportunities)
+
+5. UNIQUENESS: Write in a way that feels personal and tailored. Avoid sounding like a template. Each sentence should feel intentional and specific to this candidate and this role.
+
+6. STRUCTURE: 
+   - Engaging opening paragraph with a strong hook
+   - 2-3 body paragraphs that connect experience to specific requirements
+   - Closing paragraph that reinforces interest and leaves a memorable impression
+   - Professional closing (e.g., "Sincerely," or "Best regards,") followed by signature line
 
 CV Information:
 
@@ -37,12 +69,20 @@ Job Description:
 
 ${jobDescription}
 
-Please generate a professional cover letter that connects the candidate's experience to the job requirements. Include a proper greeting, body paragraphs, and closing.`
+Generate a cover letter that stands out through its authenticity, specificity, and genuine connection to both the candidate's background and the role. Make it memorable and engaging while remaining professional.`
 
     const result = await model.generateContent(prompt)
     const response = await result.response
     let coverLetterText = response.text() || ''
 
+    // Remove any placeholder patterns that might have slipped through
+    coverLetterText = coverLetterText
+      .replace(/\[.*?\]/g, '') // Remove any text in square brackets
+      .replace(/\{.*?\}/g, '') // Remove any text in curly braces
+      .replace(/\(.*?fill in.*?\)/gi, '') // Remove instructions like "(fill in)"
+      .replace(/\(.*?e\.g\..*?\)/gi, '') // Remove examples like "(e.g., ...)"
+      .replace(/\n\s*\n\s*\n/g, '\n\n') // Clean up excessive blank lines
+    
     // Sanitize text to remove characters that WinAnsi encoding can't handle
     coverLetterText = coverLetterText
       .replace(/[●•◦▪▫]/g, '•') // Replace various bullet points with simple bullet
