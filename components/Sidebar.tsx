@@ -9,7 +9,6 @@ import {
   Briefcase, 
   Settings, 
   Menu, 
-  X, 
   User as UserIcon,
   LogOut,
   Moon,
@@ -105,20 +104,27 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile hamburger button */}
+      {/* Mobile hamburger button - Bottom Left */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-card border border-border md:hidden"
+        className={`fixed bottom-4 left-4 z-50 p-3 rounded-full bg-card border border-border shadow-lg md:hidden transition-opacity ${
+          isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
         aria-label="Toggle menu"
       >
-        {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        <Menu className="w-5 h-5" />
       </button>
 
       {/* Mobile overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden"
-          onClick={() => setIsOpen(false)}
+          onClick={(e) => {
+            // Close if clicking on the overlay, but not on the sidebar itself
+            if (e.target === e.currentTarget) {
+              setIsOpen(false)
+            }
+          }}
         />
       )}
 
