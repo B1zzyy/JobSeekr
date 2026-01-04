@@ -60,9 +60,9 @@ export default function UserProfile() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
-        <div className="w-24 h-4 bg-muted rounded animate-pulse" />
+      <div className="flex items-center gap-2 md:gap-3">
+        <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-muted animate-pulse" />
+        <div className="hidden md:block w-24 h-4 bg-muted rounded animate-pulse" />
       </div>
     )
   }
@@ -77,32 +77,35 @@ export default function UserProfile() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-muted transition-colors"
+        className="flex items-center gap-2 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 rounded-lg hover:bg-muted transition-colors touch-manipulation"
         aria-label="User menu"
       >
-        <span className="text-sm font-medium text-foreground">{displayName}</span>
-        <div className="w-10 h-10 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
-          <UserIcon className="w-5 h-5 text-primary" />
+        {/* Desktop: Show text, Mobile: Hide text */}
+        <span className="hidden md:inline text-sm font-medium text-foreground">{displayName}</span>
+        {/* Avatar - smaller on mobile */}
+        <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center flex-shrink-0">
+          <UserIcon className="w-4 h-4 md:w-5 md:h-5 text-primary" />
         </div>
-        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        {/* Chevron - smaller on mobile, hidden on mobile when open */}
+        <ChevronDown className={`hidden md:block w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden">
+        <div className="absolute top-full right-0 mt-2 w-44 md:w-48 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden">
           <div className="py-1">
             <Link
               href="/settings"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+              className="flex items-center gap-3 px-4 py-3 md:py-2.5 text-sm text-foreground hover:bg-muted transition-colors touch-manipulation"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-4 h-4 flex-shrink-0" />
               Settings
             </Link>
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 md:py-2.5 text-sm text-foreground hover:bg-muted transition-colors touch-manipulation"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4 flex-shrink-0" />
               Sign Out
             </button>
           </div>

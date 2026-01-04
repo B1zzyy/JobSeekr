@@ -176,5 +176,10 @@
   .animate-fade-in-slide-down {
     animation: fadeInSlideDown 0.4s ease-out;
   }
+
+  /* Touch manipulation for better mobile interactions */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
 }
 

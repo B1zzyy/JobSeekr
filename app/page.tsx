@@ -203,14 +203,22 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Mobile: Logo and Title - Top Left */}
+      <div className="absolute top-4 left-4 md:hidden z-10 flex items-center gap-2 h-12">
+        <Sparkles className="w-5 h-5 text-primary flex-shrink-0" />
+        <h1 className="text-lg font-bold text-foreground leading-none">
+          JobSeekr
+        </h1>
+      </div>
+
       {/* User Profile - Top Right */}
-      <div className="absolute top-4 right-4 md:top-8 md:right-8 z-10">
+      <div className="absolute top-4 right-4 md:top-8 md:right-8 z-10 flex items-center h-12">
         <UserProfile />
       </div>
 
-      <div className="container mx-auto px-4 pt-20 md:pt-24 pb-8 md:pb-12 lg:pb-16 max-w-4xl">
-        {/* Header */}
-        <div className="text-center mb-8 md:mb-12">
+      <div className="container mx-auto px-4 pt-28 md:pt-24 pb-8 md:pb-12 lg:pb-16 max-w-4xl">
+        {/* Header - Desktop Only */}
+        <div className="hidden md:block text-center mb-8 md:mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Sparkles className="w-8 h-8 md:w-10 md:h-10 text-primary" />
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">

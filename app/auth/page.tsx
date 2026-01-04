@@ -93,21 +93,21 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left side - Form (1/4) */}
-      <div className="w-1/4 bg-card border-r border-border flex flex-col items-center justify-center p-8">
+    <div className="min-h-screen flex flex-col md:flex-row bg-background">
+      {/* Mobile: Full width form, Desktop: Left side form (1/4) */}
+      <div className="w-full md:w-1/4 bg-card md:border-r border-b md:border-b-0 border-border flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 min-h-[100vh] md:min-h-screen">
         <div className="w-full max-w-md">
           {signupSuccess ? (
             /* Success View */
-            <div className="space-y-6 text-center animate-fade-in-slide-down">
+            <div className="space-y-6 text-center animate-fade-in-slide-down py-4">
               <div className="flex justify-center mb-4">
-                <CheckCircle2 className="w-16 h-16 text-primary" />
+                <CheckCircle2 className="w-12 h-12 sm:w-16 sm:h-16 text-primary" />
               </div>
               
               <div className="space-y-3">
-                <h2 className="text-2xl font-bold text-foreground">Account Created Successfully!</h2>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  We've sent a confirmation email to <span className="font-semibold text-foreground">{signupEmail}</span>. 
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground">Account Created Successfully!</h2>
+                <p className="text-muted-foreground text-sm leading-relaxed px-2">
+                  We've sent a confirmation email to <span className="font-semibold text-foreground break-all">{signupEmail}</span>. 
                   Please check your inbox and click the confirmation link to verify your email address.
                 </p>
               </div>
@@ -115,7 +115,7 @@ export default function AuthPage() {
               <div className="flex flex-col gap-3 pt-4">
                 <button
                   onClick={handleOpenMail}
-                  className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 sm:py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all flex items-center justify-center gap-2 text-base sm:text-sm"
                 >
                   <Mail className="w-5 h-5" />
                   Open Mail
@@ -123,7 +123,7 @@ export default function AuthPage() {
                 
                 <button
                   onClick={handleGoToLogin}
-                  className="w-full py-2.5 bg-background border border-input text-foreground rounded-lg font-medium hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all"
+                  className="w-full py-3 sm:py-2.5 bg-background border border-input text-foreground rounded-lg font-medium hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all text-base sm:text-sm"
                 >
                   Login
                 </button>
@@ -133,10 +133,10 @@ export default function AuthPage() {
             /* Auth Form */
             <>
               {/* Logo/Title */}
-              <div className="mb-8 text-center">
+              <div className="mb-6 sm:mb-8 text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <Sparkles className="w-8 h-8 text-primary" />
-                  <h1 className="text-3xl font-bold text-foreground">JobSeekr</h1>
+                  <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground">JobSeekr</h1>
                 </div>
                 <p className="text-muted-foreground text-sm">
                   {isSignUp ? 'Create your account' : 'Welcome back'}
@@ -144,7 +144,7 @@ export default function AuthPage() {
               </div>
 
               {/* Auth Form */}
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
                 {/* Error Message */}
                 {error && (
                   <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
@@ -167,7 +167,7 @@ export default function AuthPage() {
                         required={isSignUp}
                         value={username}
                         onChange={(e) => setUsername(e.target.value.slice(0, 15))}
-                        className="w-full pl-10 pr-16 py-2.5 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+                        className="w-full pl-10 pr-16 py-3 sm:py-2.5 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base sm:text-sm"
                         placeholder="Username"
                         maxLength={15}
                       />
@@ -194,8 +194,9 @@ export default function AuthPage() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+                      className="w-full pl-10 pr-4 py-3 sm:py-2.5 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base sm:text-sm"
                       placeholder="you@example.com"
+                      autoComplete="email"
                     />
                   </div>
                 </div>
@@ -214,14 +215,15 @@ export default function AuthPage() {
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 pr-12 py-2.5 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+                      className="w-full pl-10 pr-12 py-3 sm:py-2.5 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base sm:text-sm"
                       placeholder="••••••••"
                       minLength={6}
+                      autoComplete={isSignUp ? 'new-password' : 'current-password'}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none p-1 touch-manipulation"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? (
@@ -248,18 +250,19 @@ export default function AuthPage() {
                         required={isSignUp}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className={`w-full pl-10 pr-12 py-2.5 bg-background border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all ${
+                        className={`w-full pl-10 pr-12 py-3 sm:py-2.5 bg-background border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base sm:text-sm ${
                           confirmPassword.length > 0 && password !== confirmPassword
                             ? 'border-destructive'
                             : 'border-input'
                         }`}
                         placeholder="••••••••"
                         minLength={6}
+                        autoComplete="new-password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none p-1 touch-manipulation"
                         aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                       >
                         {showConfirmPassword ? (
@@ -279,7 +282,7 @@ export default function AuthPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 sm:py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-base sm:text-sm touch-manipulation"
                 >
                   {loading ? (
                     <>
@@ -292,7 +295,7 @@ export default function AuthPage() {
                 </button>
 
                 {/* Toggle between Sign In and Sign Up */}
-                <div className="text-center text-sm">
+                <div className="text-center text-sm pt-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -303,7 +306,7 @@ export default function AuthPage() {
                         setUsername('')
                       }
                     }}
-                    className="text-primary hover:underline"
+                    className="text-primary hover:underline touch-manipulation py-2"
                   >
                     {isSignUp
                       ? 'Already have an account? Sign in'
@@ -316,8 +319,8 @@ export default function AuthPage() {
         </div>
       </div>
 
-      {/* Right side - Image/Video (3/4) */}
-      <div className="flex-1 bg-gradient-to-br from-primary/20 via-accent/10 to-background relative overflow-hidden">
+      {/* Right side - Image/Video (3/4) - Hidden on mobile, shown on desktop */}
+      <div className="hidden md:flex flex-1 bg-gradient-to-br from-primary/20 via-accent/10 to-background relative overflow-hidden">
         {/* Placeholder for image/video - you can replace this with an actual image or video */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center p-8">

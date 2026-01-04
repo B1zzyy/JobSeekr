@@ -32,7 +32,7 @@ export default function JobDescriptionInput({ value, onChange, hasCV }: JobDescr
         onChange={(e) => onChange(e.target.value)}
         placeholder="Paste the job description here..."
         className={`w-full p-4 pr-20 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent resize-none text-sm md:text-base scrollbar-minimal ${
-          hasCV ? 'h-[600px]' : 'h-64 md:h-80'
+          hasCV ? 'h-[350px] md:h-[600px]' : 'h-48 md:h-64 lg:h-80'
         }`}
       />
       <button
