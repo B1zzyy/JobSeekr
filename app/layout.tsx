@@ -6,8 +6,12 @@ import Script from 'next/script'
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
 
 export const metadata: Metadata = {
-  title: 'JobSeekr - AI-Powered Job Application Assistant',
+  title: 'JobSeekr',
   description: 'Optimize your CV and generate cover letters with AI',
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
 }
 
 export default function RootLayout({
