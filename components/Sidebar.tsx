@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { 
+  LayoutDashboard,
   Zap,
   Briefcase, 
   Settings, 
@@ -113,6 +114,7 @@ export default function Sidebar() {
   }
 
   const navItems = [
+    { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { href: '/studio', icon: Zap, label: 'Studio' },
     { href: '/applications', icon: Briefcase, label: 'Applications' },
     { href: '/settings', icon: Settings, label: 'Settings' },
@@ -182,7 +184,7 @@ export default function Sidebar() {
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon
-            const isActive = pathname === item.href || (item.href === '/studio' && pathname === '/studio')
+            const isActive = pathname === item.href
             return (
               <Link
                 key={item.href}
