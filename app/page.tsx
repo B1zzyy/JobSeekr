@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { TrendingUp, Calendar } from 'lucide-react'
 import AppLayout from '@/components/AppLayout'
 import { LineChart } from '@mui/x-charts/LineChart'
+import { PieChart } from '@mui/x-charts/PieChart'
 import { ChartsTooltip } from '@mui/x-charts/ChartsTooltip'
 
 // Helper function to get ordinal suffix (st, nd, rd, th)
@@ -96,6 +97,46 @@ export default function Dashboard() {
   const currentMonthApplications = yAxisData.reduce((sum, count) => sum + count, 0)
   const maxYValue = Math.max(...yAxisData, 0)
   const yAxisMax = maxYValue === 0 ? 1 : Math.ceil(maxYValue * 1.1) // Add 10% padding, round up
+
+  // Calculate status counts for pie chart
+  const statusCounts: { [key: string]: number } = {}
+  applications.forEach((app) => {
+    statusCounts[app.status] = (statusCounts[app.status] || 0) + 1
+  })
+
+  // Status colors matching applications page
+  const getStatusColor = (status: string): string => {
+    switch (status) {
+      case 'Accepted':
+        return '#22c55e' // green-500
+      case 'Rejected':
+        return '#ef4444' // red-500
+      case 'Final Round Interviews':
+        return '#a855f7' // purple-500
+      case '2nd Round Interviews':
+        return '#3b82f6' // blue-500
+      case '1st Round Interviews':
+        return '#06b6d4' // cyan-500
+      case 'Applied':
+        return '#f59e0b' // amber-500
+      case 'Viewed':
+        return '#6b7280' // gray-500 (muted)
+      default:
+        return '#6b7280'
+    }
+  }
+
+  // Prepare pie chart data
+  const pieChartData = Object.entries(statusCounts)
+    .filter(([_, count]) => count > 0)
+    .map(([status, count]) => ({
+      id: status,
+      value: count,
+      label: status,
+    }))
+    .sort((a, b) => b.value - a.value) // Sort by count descending
+
+  const pieChartColors = pieChartData.map((item) => getStatusColor(item.label))
 
   const currentMonthName = new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
 
@@ -195,7 +236,7 @@ export default function Dashboard() {
                 {
                   data: xAxisData,
                   min: 1,
-                  max: Math.max(...xAxisData, 30), // Show full month range on axis even if data stops earlier
+                  max: currentDay, // Rightmost point is always today's date
                   tickNumber: 7,
                   valueFormatter: (value: number) => {
                     const day = Math.round(value)
@@ -359,6 +400,115 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* Pie Chart */}
+        <div className="bg-card rounded-lg p-6 md:p-8 shadow-lg border border-border">
+            <div className="mb-6">
+              <h2 className="text-xl md:text-2xl font-semibold text-card-foreground mb-1">
+                Application Status
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Distribution of your applications by status
+              </p>
+            </div>
+            
+            {pieChartData.length > 0 ? (
+              <div className="w-full">
+                <PieChart
+                  series={[
+                    {
+                      data: pieChartData,
+                      innerRadius: 60,
+                      outerRadius: 120,
+                      paddingAngle: 2,
+                      cornerRadius: 8,
+                      cx: '50%',
+                      cy: '50%',
+                    },
+                  ]}
+                  colors={pieChartColors}
+                  slotProps={{
+                    legend: {
+                      direction: 'row',
+                      position: {
+                        vertical: 'bottom',
+                        horizontal: 'middle',
+                      },
+                      itemMarkWidth: 10,
+                      itemMarkHeight: 10,
+                      markGap: 6,
+                      itemGap: 8,
+                      labelStyle: {
+                        fill: 'var(--foreground) !important',
+                        fontSize: 12,
+                      },
+                      padding: 0,
+                    },
+                    tooltip: {
+                      sx: {
+                        '& .MuiChartsTooltip-root': {
+                          backgroundColor: 'var(--card) !important',
+                          border: '1px solid var(--border) !important',
+                          borderRadius: '8px !important',
+                          color: 'var(--foreground) !important',
+                        },
+                        '& .MuiChartsTooltip-cell': {
+                          color: 'var(--foreground) !important',
+                        },
+                        '& .MuiChartsTooltip-label': {
+                          color: 'var(--foreground) !important',
+                        },
+                        '& .MuiChartsTooltip-value': {
+                          color: 'var(--foreground) !important',
+                        },
+                      },
+                    },
+                  }}
+                  sx={{
+                    '& .MuiPieArc-root': {
+                      stroke: 'var(--card)',
+                      strokeWidth: 2,
+                    },
+                    '& .MuiChartsLegend-root': {
+                      width: '100%',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      paddingTop: '16px',
+                      '& .MuiChartsLegend-series': {
+                        fill: 'var(--foreground) !important',
+                      },
+                      '& .MuiChartsLegend-label': {
+                        fill: 'var(--foreground) !important',
+                        color: 'var(--foreground) !important',
+                        fontSize: '12px !important',
+                        '@media (max-width: 640px)': {
+                          fontSize: '10px !important',
+                        },
+                      },
+                      '& .MuiChartsLegend-item': {
+                        margin: '0 !important',
+                        padding: '4px 6px',
+                        '@media (max-width: 640px)': {
+                          padding: '2px 4px',
+                        },
+                      },
+                      '& text': {
+                        fill: 'var(--foreground) !important',
+                      },
+                    },
+                  }}
+                  width={undefined}
+                  height={400}
+                />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+                <p>No applications to display</p>
+              </div>
+            )}
+          </div>
       </div>
     </AppLayout>
   )
