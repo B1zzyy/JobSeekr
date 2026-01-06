@@ -428,10 +428,7 @@ export default function Dashboard() {
                       },
                     ]}
                     colors={pieChartColors}
-                    slotProps={{
-                      legend: {
-                        hidden: true,
-                      },
+                  slotProps={{
                     tooltip: {
                       sx: {
                         '& .MuiChartsTooltip-root': {
