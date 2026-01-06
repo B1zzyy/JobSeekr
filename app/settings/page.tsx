@@ -96,8 +96,25 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="space-y-8">
+          {/* Header Skeleton */}
+          <div className="mb-8">
+            <div className="h-9 bg-muted rounded w-32 mb-2 animate-pulse"></div>
+            <div className="h-5 bg-muted rounded w-64 animate-pulse"></div>
+          </div>
+
+          {/* CV Section Skeleton */}
+          <div className="bg-card rounded-lg p-6 md:p-8 shadow-lg border border-border">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-5 h-5 bg-muted rounded animate-pulse"></div>
+              <div className="h-7 bg-muted rounded w-32 animate-pulse"></div>
+            </div>
+            <div className="space-y-4">
+              <div className="h-4 bg-muted rounded w-24 mb-2 animate-pulse"></div>
+              <div className="h-4 bg-muted rounded w-48 animate-pulse"></div>
+              <div className="border border-border rounded-lg h-[600px] bg-muted animate-pulse"></div>
+            </div>
+          </div>
         </div>
       </AppLayout>
     )

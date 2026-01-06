@@ -218,7 +218,29 @@ export default function Studio() {
   return (
     <>
       {/* Show onboarding walkthrough as full-screen overlay */}
-      {!isCheckingOnboarding && showOnboarding && (
+      {isCheckingOnboarding ? (
+        <AppLayout>
+          <div className="space-y-8">
+            {/* Header Skeleton */}
+            <div className="mb-8">
+              <div className="h-9 bg-muted rounded w-48 mb-2 animate-pulse"></div>
+              <div className="h-5 bg-muted rounded w-96 animate-pulse"></div>
+            </div>
+
+            {/* Job Description Input Skeleton */}
+            <div className="bg-card rounded-lg p-6 border border-border">
+              <div className="h-5 bg-muted rounded w-40 mb-4 animate-pulse"></div>
+              <div className="h-32 bg-muted rounded animate-pulse"></div>
+            </div>
+
+            {/* Action Buttons Skeleton */}
+            <div className="flex gap-4">
+              <div className="h-10 bg-muted rounded w-40 animate-pulse"></div>
+              <div className="h-10 bg-muted rounded w-48 animate-pulse"></div>
+            </div>
+          </div>
+        </AppLayout>
+      ) : showOnboarding && (
         <div className="fixed inset-0 z-50 bg-background">
           <OnboardingWalkthrough
             onComplete={() => setShowOnboarding(false)}

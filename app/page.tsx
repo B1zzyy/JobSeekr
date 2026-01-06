@@ -31,13 +31,14 @@ export default function Dashboard() {
   const [primaryColor, setPrimaryColor] = useState('#9333ea')
 
   useEffect(() => {
-    fetchApplications()
-    // Get computed primary color from CSS
+    // Get computed primary color from CSS immediately (synchronous)
     if (typeof window !== 'undefined') {
       const root = document.documentElement
       const primary = getComputedStyle(root).getPropertyValue('--primary').trim()
       setPrimaryColor(primary || '#9333ea')
     }
+    // Fetch applications
+    fetchApplications()
   }, [])
 
   const fetchApplications = async () => {
@@ -101,8 +102,36 @@ export default function Dashboard() {
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-muted-foreground">Loading dashboard...</div>
+        <div className="space-y-8">
+          {/* Header Skeleton */}
+          <div className="mb-8">
+            <div className="h-9 bg-muted rounded w-48 mb-2 animate-pulse"></div>
+            <div className="h-5 bg-muted rounded w-64 animate-pulse"></div>
+          </div>
+
+          {/* Stats Cards Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-card rounded-lg p-6 shadow-lg border border-border">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="h-4 bg-muted rounded w-32 mb-3 animate-pulse"></div>
+                    <div className="h-8 bg-muted rounded w-20 animate-pulse"></div>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-muted animate-pulse"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Chart Skeleton */}
+          <div className="bg-card rounded-lg p-6 md:p-8 shadow-lg border border-border">
+            <div className="mb-6">
+              <div className="h-7 bg-muted rounded w-56 mb-2 animate-pulse"></div>
+              <div className="h-4 bg-muted rounded w-72 animate-pulse"></div>
+            </div>
+            <div className="w-full h-[400px] bg-muted rounded animate-pulse"></div>
+          </div>
         </div>
       </AppLayout>
     )
