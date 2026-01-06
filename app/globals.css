@@ -57,6 +57,38 @@
   --spacing: 0.25rem;
 }
 
+/* MUI X Charts Tooltip Styling */
+.MuiChartsTooltip-root,
+.MuiChartsTooltip-paper,
+.MuiPaper-root[class*="MuiChartsTooltip"] {
+  background-color: var(--card) !important;
+  background: var(--card) !important;
+  border: 1px solid var(--primary) !important;
+  border-radius: 8px !important;
+  color: var(--foreground) !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+.MuiChartsTooltip-table,
+.MuiChartsTooltip-row,
+.MuiChartsTooltip-cell {
+  background-color: var(--card) !important;
+  background: var(--card) !important;
+  color: var(--foreground) !important;
+}
+
+.MuiChartsTooltip-label,
+.MuiChartsTooltip-value {
+  color: var(--foreground) !important;
+}
+
+.MuiChartsTooltip-root *,
+.MuiChartsTooltip-paper *,
+.MuiPaper-root[class*="MuiChartsTooltip"] * {
+  overflow: visible !important;
+}
+
 .dark {
   --background: oklch(0.2244 0.0074 67.4370);
   --foreground: oklch(0.9288 0.0126 255.5078);

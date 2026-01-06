@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { TrendingUp, Calendar } from 'lucide-react'
 import AppLayout from '@/components/AppLayout'
 import { LineChart } from '@mui/x-charts/LineChart'
-import { ChartsTooltip } from '@mui/x-charts/ChartsTooltip'
 
 // Helper function to get ordinal suffix (st, nd, rd, th)
 const getOrdinalSuffix = (day: number): string => {
@@ -17,21 +16,10 @@ const getOrdinalSuffix = (day: number): string => {
   }
 }
 
-interface Application {
-  id: string
-  company_name: string | null
-  job_title: string | null
-  applied_at: string
-  status: string
-}
-
-export default function Dashboard() {
-  const [applications, setApplications] = useState<Application[]>([])
-  const [loading, setLoading] = useState(true)
+export default function TestDashboard() {
   const [primaryColor, setPrimaryColor] = useState('#9333ea')
 
   useEffect(() => {
-    fetchApplications()
     // Get computed primary color from CSS
     if (typeof window !== 'undefined') {
       const root = document.documentElement
@@ -40,73 +28,64 @@ export default function Dashboard() {
     }
   }, [])
 
-  const fetchApplications = async () => {
-    try {
-      const response = await fetch('/api/applications/list')
-      if (response.ok) {
-        const data = await response.json()
-        setApplications(data.applications || [])
-      }
-    } catch (error) {
-      console.error('Error fetching applications:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Get current month's data
-  const getCurrentMonthData = () => {
-    const now = new Date()
-    const currentMonth = now.getMonth()
-    const currentYear = now.getFullYear()
-    const currentDay = now.getDate()
-    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
-
-    // Filter applications from current month
-    const currentMonthApps = applications.filter((app) => {
-      const appDate = new Date(app.applied_at)
-      return appDate.getMonth() === currentMonth && appDate.getFullYear() === currentYear
-    })
-
-    // Create data points for each day of the month
-    const dailyCounts: { [key: number]: number } = {}
-    
-    currentMonthApps.forEach((app) => {
-      const day = new Date(app.applied_at).getDate()
-      dailyCounts[day] = (dailyCounts[day] || 0) + 1
-    })
-
-    // Build chart data with daily counts (not cumulative) for MUI
-    // Only include data up to the current day
+  // Mock data for a full month (31 days) with varying application counts
+  const generateMockData = () => {
     const xAxisData: number[] = []
     const yAxisData: number[] = []
-    
+    const currentDay = 31 // Full month
+    const daysInMonth = 31
+
+    // Simulate applications throughout the month
+    const mockDailyCounts: { [key: number]: number } = {
+      1: 0,
+      2: 1,
+      3: 0,
+      4: 2,
+      5: 1,
+      6: 0,
+      7: 1,
+      8: 0,
+      9: 3,
+      10: 1,
+      11: 0,
+      12: 2,
+      13: 1,
+      14: 0,
+      15: 4,
+      16: 2,
+      17: 1,
+      18: 0,
+      19: 2,
+      20: 1,
+      21: 0,
+      22: 3,
+      23: 1,
+      24: 0,
+      25: 2,
+      26: 1,
+      27: 0,
+      28: 1,
+      29: 0,
+      30: 2,
+      31: 1,
+    }
+
     for (let day = 1; day <= currentDay; day++) {
       xAxisData.push(day)
-      yAxisData.push(dailyCounts[day] || 0)
+      yAxisData.push(mockDailyCounts[day] || 0)
     }
 
     return { xAxisData, yAxisData, currentDay }
   }
 
-  const { xAxisData, yAxisData, currentDay } = getCurrentMonthData()
-  const totalApplications = applications.length
+  const { xAxisData, yAxisData, currentDay } = generateMockData()
   // Calculate total for current month (sum of daily counts)
-  const currentMonthApplications = yAxisData.reduce((sum, count) => sum + count, 0)
+  const totalApplications = yAxisData.reduce((sum, count) => sum + count, 0)
+  const currentMonthApplications = totalApplications
   const maxYValue = Math.max(...yAxisData, 0)
   const yAxisMax = maxYValue === 0 ? 1 : Math.ceil(maxYValue * 1.1) // Add 10% padding, round up
 
   const currentMonthName = new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
-
-  if (loading) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-muted-foreground">Loading dashboard...</div>
-        </div>
-      </AppLayout>
-    )
-  }
 
   return (
     <AppLayout>
@@ -114,10 +93,10 @@ export default function Dashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-            Dashboard
+            Test Dashboard (Full Month)
           </h1>
           <p className="text-muted-foreground text-base md:text-lg">
-            Track your job application progress
+            Testing chart with full month of data
           </p>
         </div>
 
@@ -170,8 +149,7 @@ export default function Dashboard() {
                   tickNumber: 7,
                   valueFormatter: (value: number) => {
                     const day = Math.round(value)
-                    // Return ordinal format - this will be used for tooltips
-                    // For axis labels, we'll handle via tickNumber and only show specific days
+                    // Format with ordinal suffix for tooltips
                     return `${day}${getOrdinalSuffix(day)}`
                   },
                   tickLabelStyle: { fill: 'var(--foreground)' },
@@ -209,6 +187,14 @@ export default function Dashboard() {
               height={400}
               slotProps={{
                 tooltip: {
+                  labelFormatter: (value: number) => {
+                    const day = Math.round(value)
+                    return `${day}${getOrdinalSuffix(day)}`
+                  },
+                  valueFormatter: (value: number | null) => {
+                    if (value === null || value === undefined) return '0'
+                    return value.toString()
+                  },
                   sx: {
                     '& .MuiChartsTooltip-root': {
                       backgroundColor: 'var(--card) !important',
@@ -217,17 +203,12 @@ export default function Dashboard() {
                       borderRadius: '8px !important',
                       color: 'var(--foreground) !important',
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important',
-                      overflow: 'visible !important',
-                      boxSizing: 'border-box !important',
                     },
                     '& .MuiChartsTooltip-paper': {
                       backgroundColor: 'var(--card) !important',
                       background: 'var(--card) !important',
                       border: `1px solid ${primaryColor} !important`,
                       borderRadius: '8px !important',
-                      overflow: 'visible !important',
-                      boxSizing: 'border-box !important',
-                      padding: '8px 12px !important',
                     },
                     '& .MuiPaper-root': {
                       backgroundColor: 'var(--card) !important',
@@ -251,9 +232,6 @@ export default function Dashboard() {
                     },
                     '& .MuiChartsTooltip-label': {
                       color: 'var(--foreground) !important',
-                      '&::after': {
-                        content: '" - "',
-                      },
                     },
                     '& .MuiChartsTooltip-value': {
                       color: 'var(--foreground) !important',
@@ -269,19 +247,18 @@ export default function Dashboard() {
               sx={{
                 // Tooltip styling in main sx prop to ensure it applies
                 '& .MuiChartsTooltip-root, & .MuiChartsTooltip-paper, & .MuiPaper-root': {
-                  backgroundColor: 'var(--card) !important',
-                  background: 'var(--card) !important',
+                  backgroundColor: 'hsl(var(--card)) !important',
+                  background: 'hsl(var(--card)) !important',
                   border: `1px solid ${primaryColor} !important`,
-                  color: 'var(--foreground) !important',
+                  color: 'hsl(var(--foreground)) !important',
                 },
                 '& .MuiChartsTooltip-table, & .MuiChartsTooltip-row, & .MuiChartsTooltip-cell': {
-                  backgroundColor: 'var(--card) !important',
-                  background: 'var(--card) !important',
-                  color: 'var(--foreground) !important',
+                  backgroundColor: 'hsl(var(--card)) !important',
+                  background: 'hsl(var(--card)) !important',
+                  color: 'hsl(var(--foreground)) !important',
                 },
                 '& .MuiChartsAxis-root .MuiChartsAxis-tickLabel': {
                   fill: 'var(--foreground) !important',
-                  fontSize: '12px',
                 },
                 '& .MuiChartsAxis-root .MuiChartsAxis-label': {
                   fill: 'var(--foreground) !important',
@@ -334,3 +311,4 @@ export default function Dashboard() {
     </AppLayout>
   )
 }
+

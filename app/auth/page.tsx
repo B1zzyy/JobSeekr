@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { signIn, signUp } from './actions'
 import { Loader2, Mail, Lock, Sparkles, User, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
+import Image from 'next/image'
 
 // Function to get email provider URL
 function getEmailProviderUrl(email: string): string {
@@ -134,8 +135,14 @@ export default function AuthPage() {
             <>
               {/* Logo/Title */}
               <div className="mb-6 sm:mb-8 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+                <div className="flex flex-col items-center gap-3 mb-2">
+                  <Image 
+                    src="/logo.png" 
+                    alt="JobSeekr Logo" 
+                    width={64} 
+                    height={64} 
+                    className="object-contain w-12 h-12 sm:w-16 sm:h-16"
+                  />
                   <h1 className="text-2xl sm:text-3xl font-bold text-foreground">JobSeekr</h1>
                 </div>
                 <p className="text-muted-foreground text-sm">
@@ -323,12 +330,20 @@ export default function AuthPage() {
       <div className="hidden md:flex flex-1 bg-gradient-to-br from-primary/20 via-accent/10 to-background relative overflow-hidden">
         {/* Placeholder for image/video - you can replace this with an actual image or video */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center p-8">
-            <Sparkles className="w-24 h-24 text-primary/30 mx-auto mb-4" />
+          <div className="text-center p-8 w-full max-w-2xl mx-auto">
+            <div className="flex justify-center mb-4">
+              <Image 
+                src="/logo.png" 
+                alt="JobSeekr Logo" 
+                width={160} 
+                height={160} 
+                className="object-contain"
+              />
+            </div>
             <h2 className="text-4xl font-bold text-foreground/80 mb-2">
               Your Career Journey Starts Here
             </h2>
-            <p className="text-lg text-muted-foreground max-w-md">
+            <p className="text-lg text-muted-foreground max-w-md mx-auto">
               Optimize your CV and generate personalized cover letters with AI-powered tools
             </p>
           </div>
