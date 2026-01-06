@@ -413,37 +413,25 @@ export default function Dashboard() {
             </div>
             
             {pieChartData.length > 0 ? (
-              <div className="w-full">
-                <PieChart
-                  series={[
-                    {
-                      data: pieChartData,
-                      innerRadius: 60,
-                      outerRadius: 120,
-                      paddingAngle: 2,
-                      cornerRadius: 8,
-                      cx: '50%',
-                      cy: '50%',
-                    },
-                  ]}
-                  colors={pieChartColors}
-                  slotProps={{
-                    legend: {
-                      direction: 'row',
-                      position: {
-                        vertical: 'bottom',
-                        horizontal: 'middle',
+              <div className="w-full flex flex-col items-center">
+                <div className="flex justify-center mb-4">
+                  <PieChart
+                    series={[
+                      {
+                        data: pieChartData,
+                        innerRadius: 60,
+                        outerRadius: 120,
+                        paddingAngle: 2,
+                        cornerRadius: 8,
+                        cx: 200,
+                        cy: 200,
                       },
-                      itemMarkWidth: 10,
-                      itemMarkHeight: 10,
-                      markGap: 6,
-                      itemGap: 8,
-                      labelStyle: {
-                        fill: 'var(--foreground) !important',
-                        fontSize: 12,
+                    ]}
+                    colors={pieChartColors}
+                    slotProps={{
+                      legend: {
+                        hidden: true,
                       },
-                      padding: 0,
-                    },
                     tooltip: {
                       sx: {
                         '& .MuiChartsTooltip-root': {
@@ -470,38 +458,26 @@ export default function Dashboard() {
                       strokeWidth: 2,
                     },
                     '& .MuiChartsLegend-root': {
-                      width: '100%',
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      paddingTop: '16px',
-                      '& .MuiChartsLegend-series': {
-                        fill: 'var(--foreground) !important',
-                      },
-                      '& .MuiChartsLegend-label': {
-                        fill: 'var(--foreground) !important',
-                        color: 'var(--foreground) !important',
-                        fontSize: '12px !important',
-                        '@media (max-width: 640px)': {
-                          fontSize: '10px !important',
-                        },
-                      },
-                      '& .MuiChartsLegend-item': {
-                        margin: '0 !important',
-                        padding: '4px 6px',
-                        '@media (max-width: 640px)': {
-                          padding: '2px 4px',
-                        },
-                      },
-                      '& text': {
-                        fill: 'var(--foreground) !important',
-                      },
+                      display: 'none !important',
                     },
                   }}
-                  width={undefined}
+                  width={400}
                   height={400}
                 />
+                </div>
+                
+                {/* Custom Legend Below Chart */}
+                <div className="w-full flex flex-wrap justify-center gap-3 px-4">
+                  {pieChartData.map((item) => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: getStatusColor(item.label) }}
+                      />
+                      <span className="text-sm text-foreground whitespace-nowrap">{item.label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : (
               <div className="flex items-center justify-center h-[400px] text-muted-foreground">
