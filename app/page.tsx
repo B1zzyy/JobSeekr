@@ -429,6 +429,7 @@ export default function Dashboard() {
                   colors={pieChartColors}
                   slotProps={{
                     legend: {
+                      direction: 'row',
                       position: {
                         vertical: 'bottom',
                         horizontal: 'middle',
