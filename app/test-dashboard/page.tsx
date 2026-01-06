@@ -187,14 +187,6 @@ export default function TestDashboard() {
               height={400}
               slotProps={{
                 tooltip: {
-                  labelFormatter: (value: number) => {
-                    const day = Math.round(value)
-                    return `${day}${getOrdinalSuffix(day)}`
-                  },
-                  valueFormatter: (value: number | null) => {
-                    if (value === null || value === undefined) return '0'
-                    return value.toString()
-                  },
                   sx: {
                     '& .MuiChartsTooltip-root': {
                       backgroundColor: 'var(--card) !important',
