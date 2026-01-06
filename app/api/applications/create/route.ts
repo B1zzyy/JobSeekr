@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Use AI to extract company name and job position from job description
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
     
     const prompt = `Extract the company name and job title/position from the following job description.
 

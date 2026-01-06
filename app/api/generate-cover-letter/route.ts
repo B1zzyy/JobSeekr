@@ -56,8 +56,8 @@ export async function POST(request: NextRequest) {
     const pdfData = await pdfParse(buffer)
     const cvText = pdfData.text
 
-    // Use Gemini to generate cover letter (using free tier model: gemini-2.0-flash-lite)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' })
+    // Use Gemini to generate cover letter (using free tier model: gemini-2.5-flash-lite)
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
     
     const prompt = `You are an expert cover letter writer who creates engaging, personalized cover letters that stand out from generic templates. Write a compelling cover letter that authentically connects the candidate's experience to the job requirements.
 

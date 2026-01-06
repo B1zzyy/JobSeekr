@@ -62,39 +62,43 @@ export async function POST(request: NextRequest) {
     const pdfData = await pdfParse(buffer)
     const cvText = pdfData.text
 
-    // Use Gemini to generate recommendations (using free tier model: gemini-2.0-flash-lite)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' })
+    // Use Gemini to generate recommendations (using free tier model: gemini-2.5-flash-lite)
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
     
-    const prompt = `You are an expert CV optimizer. Analyze the CV and job description, then provide specific, actionable recommendations for where to add keywords and what text to modify.
+    const prompt = `You are a CV optimizer. Your task is simple:
 
-INSTRUCTIONS:
-1. Extract key skills, technologies, qualifications, and important phrases from the job description
-2. Identify 3-8 specific places in the CV where these keywords should be naturally integrated
-3. For each recommendation, provide:
-   - The exact section name from the CV (e.g., "Experience", "Skills", "Summary", "Education")
-   - A CONCISE location identifier (e.g., "Software Engineer at Company X", "Additional Skills section", "Professional Summary", "Education - University Name"). This should be a brief label, NOT the actual text content from the CV
-   - The current text that should be modified (copy it exactly as written)
-   - The suggested improved text with keywords naturally integrated
-   - The specific keywords being added
-   - A brief reason explaining why this change helps match the job description
+1. Read the job description and identify important keywords (technical skills, tools, technologies, soft skills, themes, etc.)
+2. Check the CV to see if these keywords are present
+3. For keywords that are MISSING from the CV, find the best place in the CV to add them naturally
+4. Suggest specific text changes to integrate those keywords
 
-IMPORTANT GUIDELINES:
-- Only suggest changes that naturally integrate keywords into existing content. Do NOT suggest adding completely new experiences or qualifications. Focus on enhancing what's already there.
-- The "location" field should be a SHORT identifier (1-10 words max), like a job title, section name, or brief label. DO NOT include the actual bullet points or text content in the location field.
-- Examples of good locations: "Software Engineer - Company ABC", "Skills section", "Professional Summary", "Education - University Name"
-- Examples of BAD locations: Long text strings, bullet points, or full sentences from the CV
+For each recommendation, provide:
+- "section": The CV section (e.g., "Experience", "Skills", "Summary")
+- "location": Brief identifier (e.g., "Software Engineer at Company X", "Skills section")
+- "currentText": The specific 1-2 sentences from the CV that should be modified (NOT the entire paragraph)
+- "suggestedText": The improved version with keywords added (same length as currentText - 1-2 sentences)
+- "keywords": Array of keywords from the job description being added
+- "reason": Brief explanation
 
-Return your response as a valid JSON array. Each recommendation must have these exact fields:
-{
-  "section": "string (e.g., 'Experience', 'Skills', 'Summary', 'Education')",
-  "location": "string (SHORT identifier like 'Job Title at Company', 'Skills section', NOT the actual text content)",
-  "currentText": "string (the exact current text from the CV)",
-  "suggestedText": "string (the improved text with keywords integrated)",
-  "keywords": ["keyword1", "keyword2"],
-  "reason": "string (brief explanation of why this helps)"
-}
+IMPORTANT:
+- Only suggest keywords that appear in the job description
+- Extract only 1-2 sentences that need to change, not entire paragraphs
+- Aim for 5-7 recommendations if there are multiple missing keywords
+- Only suggest changes where keywords can be naturally integrated into existing text
 
-CRITICAL: Return ONLY the JSON array. No markdown formatting, no code blocks, no explanations before or after. Just the raw JSON array starting with [ and ending with ].
+Return a JSON array with this structure:
+[
+  {
+    "section": "Experience",
+    "location": "Software Engineer at Company X",
+    "currentText": "I developed web applications using React.",
+    "suggestedText": "I developed web applications using React and Python.",
+    "keywords": ["Python"],
+    "reason": "Adds Python which is mentioned in the job description"
+  }
+]
+
+Return ONLY the JSON array, no markdown, no explanations.
 
 Original CV:
 ${cvText}
@@ -128,6 +132,110 @@ ${jobDescription}
       if (!Array.isArray(recommendations)) {
         recommendations = []
       }
+      
+      // Helper function to count sentences (rough estimate)
+      const countSentences = (text: string): number => {
+        if (!text) return 0
+        // Count sentence endings (. ! ?) but not abbreviations
+        const matches = text.match(/[.!?]+/g)
+        return matches ? matches.length : 1
+      }
+      
+      // Helper function to check if a keyword appears in the job description (case-insensitive, flexible matching)
+      const keywordInJobDescription = (keyword: string, jobDesc: string): boolean => {
+        if (!keyword || !jobDesc) return false
+        const keywordLower = keyword.toLowerCase().trim()
+        const jobDescLower = jobDesc.toLowerCase()
+        
+        // First try exact phrase match
+        if (jobDescLower.includes(keywordLower)) {
+          return true
+        }
+        
+        // Then try word-by-word match (all words must appear, but can be in different places)
+        const keywordWords = keywordLower.split(/\s+/).filter(w => w.length > 2) // Filter out very short words
+        if (keywordWords.length === 0) return false
+        
+        // If it's a single word, check if it appears
+        if (keywordWords.length === 1) {
+          return jobDescLower.includes(keywordWords[0])
+        }
+        
+        // For multi-word phrases, check if all significant words appear
+        return keywordWords.every(word => jobDescLower.includes(word))
+      }
+      
+      // Filter out recommendations that don't actually change anything
+      recommendations = recommendations.filter((rec) => {
+        // Remove if currentText and suggestedText are the same (after trimming)
+        if (rec.currentText?.trim() === rec.suggestedText?.trim()) {
+          return false
+        }
+        
+        // Remove if currentText is too long (more than 2 sentences)
+        const currentSentences = countSentences(rec.currentText || '')
+        if (currentSentences > 2) {
+          return false
+        }
+        
+        // Remove if suggestedText is too long (more than 2 sentences)
+        const suggestedSentences = countSentences(rec.suggestedText || '')
+        if (suggestedSentences > 2) {
+          return false
+        }
+        
+        // Remove if currentText is very long (more than 300 characters - likely a paragraph)
+        if (rec.currentText && rec.currentText.length > 300) {
+          return false
+        }
+        
+        // Remove if suggestedText is very long (more than 300 characters - likely a paragraph)
+        if (rec.suggestedText && rec.suggestedText.length > 300) {
+          return false
+        }
+        
+        // Remove if reason suggests no change is needed
+        const reasonLower = rec.reason?.toLowerCase() || ''
+        const noChangePhrases = [
+          'nothing to change',
+          'no change needed',
+          'already good',
+          'already optimal',
+          'no changes required',
+          'no modification needed',
+          'is already',
+          'already contains',
+          'already includes',
+          'no improvement needed'
+        ]
+        if (noChangePhrases.some(phrase => reasonLower.includes(phrase))) {
+          return false
+        }
+        
+        // Remove if no keywords are being added
+        if (!rec.keywords || rec.keywords.length === 0) {
+          return false
+        }
+        
+        // CRITICAL: Remove if any keyword doesn't appear in the job description
+        // All keywords must be found in the job description
+        const allKeywordsValid = rec.keywords.every((keyword: string) => 
+          keywordInJobDescription(keyword, jobDescription)
+        )
+        if (!allKeywordsValid) {
+          return false
+        }
+        
+        // Remove if suggestedText is empty or just whitespace
+        if (!rec.suggestedText || rec.suggestedText.trim().length === 0) {
+          return false
+        }
+        
+        return true
+      })
+      
+      // Limit to maximum 7 recommendations
+      recommendations = recommendations.slice(0, 7)
     } catch (parseError) {
       console.error('Failed to parse recommendations JSON:', parseError)
       console.error('Raw response:', recommendationsText)
